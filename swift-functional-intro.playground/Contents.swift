@@ -1,5 +1,3 @@
-//: Playground - noun: a place where people can play
-
 import UIKit
 
 /*** What is functional programming? ***/
@@ -13,7 +11,7 @@ func incrementUnfunctional() -> () {
 }
 
 incrementUnfunctional()
-print(a) // a = 1
+print(a)
 
 /* This is a functional function */
 
@@ -24,10 +22,12 @@ func incrementFunctional(num: Int) -> Int {
 }
 
 a = incrementFunctional(a)
-print(a) // a = 1
+print(a)
 
+ ///////////////////////////////////////////////////////
 
 /*** Don’t iterate over lists. Use map and reduce. ***/
+
 
 /* Map - Example 1 */
 
@@ -40,6 +40,7 @@ print(languageLengths)
 let squares = [0, 1, 2, 3, 4].map { x in x * x }
 
 print(squares)
+
 
 /* Map - Example 2 */
 
@@ -56,8 +57,45 @@ for index in 0..<languages.count {
     languages[index] = randomElement(newLanguages)
 }
 
+print(languages)
+
 // Functional
 
 let randomLanguages = languages.map { _ in randomElement(newLanguages) }
 
 print(randomLanguages)
+
+
+/* Reduce - Example 1 */
+
+let sum = [0, 1, 2, 3, 4].reduce(0, combine: { $0 + $1 })
+
+print(sum)
+
+/* Reduce - Example 2 */
+
+let greetings = ["Hello, World", "Hello, Swift.", "Later, Objective-C"]
+
+func string(str: String, #contains: String) -> Bool {
+    return str.lowercaseString.rangeOfString(contains.lowercaseString) != nil
+}
+
+// Unfunctional
+
+var helloCount1 = 0
+
+for greeting in greetings {
+    if(string(greeting, contains:"hello")) {
+        helloCount1 += 1
+    }
+}
+
+print(helloCount1)
+
+// Functional
+
+let helloCount2 = greetings.reduce(0, combine: { $0 + ((string($1, contains:"hello")) ? 1 : 0) })
+
+print(helloCount2)
+
+///////////////////////////////////////////////////////
