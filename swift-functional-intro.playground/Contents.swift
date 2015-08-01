@@ -46,8 +46,12 @@ print(squares)
 
 let newLanguages = ["Swift", "Haskell", "Erlang"]
 
+func randomPositiveNumberUpTo(number: Int) -> Int {
+    return Int(arc4random_uniform(UInt32(number)))
+}
+
 func randomElement<T>(array: Array<T>) -> T {
-    let randomIndex = Int(arc4random_uniform(UInt32(array.count)))
+    let randomIndex = randomPositiveNumberUpTo(array.count)
     return array[randomIndex]
 }
 
@@ -82,20 +86,125 @@ func string(str: String, #contains: String) -> Bool {
 
 // Unfunctional
 
-var helloCount1 = 0
+var helloCount = 0
 
 for greeting in greetings {
     if(string(greeting, contains:"hello")) {
-        helloCount1 += 1
+        helloCount += 1
     }
 }
 
-print(helloCount1)
+print(helloCount)
 
 // Functional
 
-let helloCount2 = greetings.reduce(0, combine: { $0 + ((string($1, contains:"hello")) ? 1 : 0) })
+let helloCountFunctional = greetings.reduce(0, combine: { $0 + ((string($1, contains:"hello")) ? 1 : 0) })
 
-print(helloCount2)
+print(helloCountFunctional)
 
 ///////////////////////////////////////////////////////
+
+/*** Write declaratively, not imperatively ***/
+
+// Unfunctional
+
+var time = 5
+var carPositions = [1, 1, 1]
+
+while(time > 0) {
+    time -= 1
+    
+    print("\n")
+    
+    for index in 0..<carPositions.count {
+        if(randomPositiveNumberUpTo(10) > 3) {
+            carPositions[index] += 1
+        }
+        
+        for _ in 0..<carPositions[index] {
+            print("-")
+        }
+        
+        print("\n")
+    }
+}
+
+// Still Unfunctional
+
+time = 5
+carPositions = [1, 1, 1]
+
+func runStepOfRace() -> () {
+    time -= 1
+    moveCars()
+}
+
+func draw() {
+    print("\n")
+    
+    for carPosition in carPositions {
+        drawCar(carPosition)
+    }
+}
+
+func moveCars() -> () {
+    for index in 0..<carPositions.count {
+        if(randomPositiveNumberUpTo(10) > 3) {
+            carPositions[index] += 1
+        }
+    }
+}
+
+func drawCar(carPosition: Int) -> () {
+    for _ in 0..<carPosition {
+        print("-")
+    }
+    
+    print("\n")
+}
+
+while(time > 0) {
+    runStepOfRace()
+    draw()
+}
+
+// Functional
+
+typealias Time = Dictionary<String, Int>
+typealias Positions = Dictionary<String, Array<Int>>
+typealias State = (time: Time, positions: Positions)
+
+func moveCarsFunctional(positions: Array<Int>) -> Array<Int> {
+    return positions.map { position in (randomPositiveNumberUpTo(10) > 3) ? position + 1 : position }
+}
+
+func outputCar(carPosition: Int) -> String {
+    let output = (0..<carPosition).map { _ in "-" }
+    
+    return join("", output)
+}
+
+func runStepOfRaceFunctional(state: State) -> State {
+    let newTime = state.time["time"]! - 1
+    let newPositions = moveCarsFunctional(state.positions["positions"]!)
+    
+    return (["time" : newTime], ["positions" : newPositions])
+}
+
+func drawFunctional(state: State) -> () {
+    let outputs: Array<String> = state.positions["positions"]!.map { position in outputCar(position) }
+    
+    print(join("\n", outputs))
+}
+
+func race(state: State) -> () {
+    drawFunctional(state)
+    
+    if(state.time["time"]! > 1) {
+        print("\n\n")
+        race(runStepOfRaceFunctional(state))
+    }
+}
+
+let state: State = (["time" : 5], ["positions" : [1, 1, 1]])
+race(state)
