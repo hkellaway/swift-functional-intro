@@ -29,10 +29,35 @@ print(a) // a = 1
 
 /*** Don’t iterate over lists. Use map and reduce. ***/
 
-/* Map */
+/* Map - Example 1 */
 
-let names = ["Harlan", "Swift", "Jem"]
+var languages = ["Objective-C", "Java", "Smalltalk"]
 
-let nameLengths = names.map { name in count(name) }
+let languageLengths = languages.map { language in count(language) }
 
-print(nameLengths)
+print(languageLengths)
+
+let squares = [0, 1, 2, 3, 4].map { x in x * x }
+
+print(squares)
+
+/* Map - Example 2 */
+
+let newLanguages = ["Swift", "Haskell", "Erlang"]
+
+func randomElement<T>(array: Array<T>) -> T {
+    let randomIndex = Int(arc4random_uniform(UInt32(array.count)))
+    return array[randomIndex]
+}
+
+// Unfunctional
+
+for index in 0..<languages.count {
+    languages[index] = randomElement(newLanguages)
+}
+
+// Functional
+
+let randomLanguages = languages.map { _ in randomElement(newLanguages) }
+
+print(randomLanguages)
