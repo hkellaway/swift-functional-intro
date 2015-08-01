@@ -25,3 +25,14 @@ func incrementFunctional(num: Int) -> Int {
 
 a = incrementFunctional(a)
 print(a) // a = 1
+
+
+/*** Don’t iterate over lists. Use map and reduce. ***/
+
+/* Map */
+
+let names = ["Harlan", "Swift", "Jem"]
+
+let nameLengths = names.map { name in count(name) }
+
+print(nameLengths)
