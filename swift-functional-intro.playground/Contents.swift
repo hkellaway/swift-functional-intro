@@ -1,3 +1,6 @@
+/* Examples of functional programming in Swift inspired by Mary Rose Cook's "A practical introduction to functional programming" http://maryrosecook.com/blog/post/a-practical-introduction-to-functional-programming
+*/
+
 import UIKit
 
 /*** What is functional programming? ***/
@@ -129,7 +132,7 @@ while(time > 0) {
     }
 }
 
-// Still Unfunctional
+// Better, but still unfunctional
 
 time = 5
 carPositions = [1, 1, 1]
@@ -208,3 +211,129 @@ func race(state: State) -> () {
 
 let state: State = (["time" : 5], ["positions" : [1, 1, 1]])
 race(state)
+
+
+///////////////////////////////////////////////////////
+
+/*** Use pipelines ***/
+
+// Unfunctional
+
+var originalBands: Array<Dictionary<String, String>> = [
+    ["name" : "sunset rubdown", "country" : "UK"],
+    ["name" : "women", "country" : "Germany"],
+    ["name" : "a silver mt. zion", "country" : "Spain"]
+]
+var bands = originalBands // copy so we can use original data in other examples
+
+func formatBands(inout bands: Array<Dictionary<String, String>>) -> () {
+    var newBands: Array<Dictionary<String, String>> = []
+    
+    for band in bands {
+        var newBand: Dictionary<String, String> = band
+        newBand["country"] = "Canada"
+        newBand["name"] = newBand["name"]!.capitalizedString
+        
+        newBands.append(newBand)
+    }
+    
+    bands = newBands
+}
+
+formatBands(&bands)
+print(bands)
+
+// Functional 1
+
+typealias Band = Dictionary<String, String>
+
+func setCanadaAsCountry(band: Band) -> Band {
+    var newBand = band
+    newBand["country"] = "Canada"
+    return newBand
+}
+
+func capitalizeName(band: Band) -> Band {
+    var newBand = band
+    newBand["name"] = newBand["name"]!.capitalizedString
+    return newBand
+}
+
+func formatBandsFunctional1(bands: Array<Band>) -> Array<Band> {
+    var newBands: Array<Band> = []
+    
+    for band in bands {
+        var newBand = setCanadaAsCountry(band)
+        newBand = capitalizeName(newBand)
+        
+        newBands.append(newBand)
+    }
+    
+    return newBands
+}
+
+formatBandsFunctional1(originalBands)
+
+// Functional 2
+
+typealias BandTransformation = Band -> Band
+
+func setCanadaAsCountryTransformation() -> BandTransformation {
+    return {
+        band in
+        
+        var newBand = band
+        newBand["country"] = "Canada"
+        return newBand
+    }
+}
+
+func capitalizeNameTransformation() -> BandTransformation {
+    return {
+        band in
+        
+        var newBand = band
+        newBand["name"] = newBand["name"]!.capitalizedString
+        return newBand
+    }
+}
+
+func formatBandsFunctional2(bands: Array<Band>) -> Array<Band> {
+    var newBands: Array<Band> = []
+    
+    for band in bands {
+        var newBand = setCanadaAsCountryTransformation()(band)
+        newBand = capitalizeNameTransformation()(newBand)
+        
+        newBands.append(newBand)
+    }
+    
+    return newBands
+}
+
+formatBandsFunctional2(originalBands)
+
+// Functional 3
+
+func composeBandTransformations(transformation1: BandTransformation, transformation2: BandTransformation) -> BandTransformation {
+    return {
+        band in
+        
+        transformation2(transformation1(band))
+    }
+}
+
+func formatBandsFunctional3(bands: Array<Band>) -> Array<Band> {
+    var newBands: Array<Band> = []
+    let myBandTransformation: BandTransformation = composeBandTransformations(setCanadaAsCountryTransformation(), capitalizeNameTransformation())
+    
+    for band in bands {
+        newBands.append(myBandTransformation(band))
+    }
+    
+    return newBands
+}
+
+
+formatBandsFunctional3(originalBands)
+
