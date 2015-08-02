@@ -243,14 +243,14 @@ func formatBands(inout bands: Array<Dictionary<String, String>>) -> () {
 formatBands(&bands)
 print(bands)
 
-// Functional 0
+// Functional 1
 
 typealias BandProperty = String
 typealias Band = Dictionary<String, BandProperty>
 typealias BandTransform = Band -> Band
 typealias BandPropertyTransform = BandProperty -> BandProperty
 
-func call(fn: BandProperty -> BandProperty, onValueForKey key: String) -> Band -> Band {
+func call(fn: BandPropertyTransform, onValueForKey key: String) -> BandTransform {
     return {
         band in
         
@@ -290,105 +290,21 @@ func formattedBandsShorthand(bands: Array<Band>, fns: Array<BandTransform>) -> A
 print(originalBands)
 print(formattedBands(originalBands, [setCanadaAsCountry, capitalizeName]))
 
-// Functional 1
-
-func setCanadaAsCountry(band: Band) -> Band {
-    var newBand = band
-    newBand["country"] = "Canada"
-    return newBand
-}
-
-func capitalizeName(band: Band) -> Band {
-    var newBand = band
-    newBand["name"] = newBand["name"]!.capitalizedString
-    return newBand
-}
-
-func formatBandsFunctional1(bands: Array<Band>) -> Array<Band> {
-    var newBands: Array<Band> = []
-    
-    for band in bands {
-        var newBand = setCanadaAsCountry(band)
-        newBand = capitalizeName(newBand)
-        
-        newBands.append(newBand)
-    }
-    
-    return newBands
-}
-
-formatBandsFunctional1(originalBands)
-
 // Functional 2
 
-typealias BandTransformation = Band -> Band
-
-func setCanadaAsCountryTransformation() -> BandTransformation {
+func composeBandTransforms(transform1: BandTransform, transform2: BandTransform) -> BandTransform {
     return {
         band in
         
-        var newBand = band
-        newBand["country"] = "Canada"
-        return newBand
+        transform2(transform1(band))
     }
 }
 
-func capitalizeNameTransformation() -> BandTransformation {
-    return {
-        band in
-        
-        var newBand = band
-        newBand["name"] = newBand["name"]!.capitalizedString
-        return newBand
-    }
-}
+let myBandTransform = composeBandTransforms(setCanadaAsCountry, capitalizeName)
+let formattedBands = bands.map { band in myBandTransform(band) }
 
-func formatBandsFunctional2(bands: Array<Band>) -> Array<Band> {
-    var newBands: Array<Band> = []
-    
-    for band in bands {
-        var newBand = setCanadaAsCountryTransformation()(band)
-        newBand = capitalizeNameTransformation()(newBand)
-        
-        newBands.append(newBand)
-    }
-    
-    return newBands
-}
-
-formatBandsFunctional2(originalBands)
-
-// Functional 3
-
-func composeBandTransformations(transformation1: BandTransformation, transformation2: BandTransformation) -> BandTransformation {
-    return {
-        band in
-        
-        transformation2(transformation1(band))
-    }
-}
-
-func formatBandsFunctional3(bands: Array<Band>) -> Array<Band> {
-    var newBands: Array<Band> = []
-    let myBandTransformation: BandTransformation = composeBandTransformations(setCanadaAsCountryTransformation(), capitalizeNameTransformation())
-    
-    for band in bands {
-        newBands.append(myBandTransformation(band))
-    }
-    
-    return newBands
-}
-
-
-formatBandsFunctional3(originalBands)
-
-// Functional 4
-
-func updatePropertyForBand(band: Band, key: String, update: BandProperty? -> BandProperty?) -> Band {
-    var newBand = band
-    newBand[key] = update(newBand[key])
-    return newBand
-}
+print(originalBands)
+print(formattedBands)
 
 ///////////////////////////////////////////////////////
 
@@ -411,5 +327,13 @@ func call<T, U>(fn: U -> U, onValueForKey key: T) -> Dictionary<T, U> -> Diction
 func updatedItems<T>(items: Array<T>, fns: Array<T -> T>) -> Array<T> {
     return items.map {
         fns.reduce($0) { $1($0) }
+    }
+}
+
+// Generic version of composeBandTransforms(_:transform2:)
+
+func composeTransforms<T>(transform1: T -> T, transform2: T -> T) -> T -> T {
+    return {
+        transform2(transform1($0))
     }
 }
