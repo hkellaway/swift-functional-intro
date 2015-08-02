@@ -261,20 +261,29 @@ func call(fn: BandProperty -> BandProperty, onValueForKey key: String) -> Band -
     }
 }
 
-let getCanada: BandPropertyTransform = { _ in return "Canada" };
+let canada: BandPropertyTransform = { _ in return "Canada" };
 let capitalize: BandPropertyTransform = { return $0.capitalizedString }
 
-let setCanadaAsCountry = call(getCanada, onValueForKey: "country")
+let setCanadaAsCountry = call(canada, onValueForKey: "country")
 let capitalizeName = call(capitalize, onValueForKey: "name")
 
 func formattedBands(bands: Array<Band>, fns: Array<BandTransform>) -> Array<Band> {
     return bands.map {
         band in
         
-        var newBand = band
-        fns.map { fn in newBand = fn(newBand) }
-        
-        return newBand
+        fns.reduce(band) {
+            (currentBand, fn) in
+            
+            fn(currentBand)
+        }
+    }
+}
+
+// OR shorthand:
+
+func formattedBandsShorthand(bands: Array<Band>, fns: Array<BandTransform>) -> Array<Band> {
+    return bands.map {
+        fns.reduce($0) { $1($0) }
     }
 }
 
@@ -385,7 +394,7 @@ func updatePropertyForBand(band: Band, key: String, update: BandProperty? -> Ban
 
 /*** Extra Credit: Generics ***/
 
-// Generic call(_:onValueForKey:)
+// Generic version of call(_:onValueForKey:)
 
 func call<T, U>(fn: U -> U, onValueForKey key: T) -> Dictionary<T, U> -> Dictionary<T, U> {
     return {
@@ -394,5 +403,13 @@ func call<T, U>(fn: U -> U, onValueForKey key: T) -> Dictionary<T, U> -> Diction
         var newDictionary = dictionary
         newDictionary[key] = fn(dictionary[key]!)
         return newDictionary
+    }
+}
+
+// Generic version of formattedBands(_:fns:)
+
+func updatedItems<T>(items: Array<T>, fns: Array<T -> T>) -> Array<T> {
+    return items.map {
+        fns.reduce($0) { $1($0) }
     }
 }
