@@ -257,7 +257,6 @@ func call(fn: BandPropertyTransform, onValueForKey key: String) -> BandTransform
         var newBand = band
         newBand[key] = fn(band[key]!)
         return newBand
-        
     }
 }
 
@@ -305,6 +304,23 @@ let formattedBands = bands.map { band in myBandTransform(band) }
 
 print(originalBands)
 print(formattedBands)
+
+// Functional 3
+
+func pluck(key: String) -> BandTransform {
+    return {
+        band in
+        
+        var newBand: Band = [:]
+        newBand[key] = band[key]
+        return newBand
+    }
+}
+
+let pluckName = pluck("name")
+
+print(formattedBands(originalBands, [pluckName]))
+
 
 ///////////////////////////////////////////////////////
 
