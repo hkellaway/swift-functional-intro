@@ -27,7 +27,7 @@ func incrementFunctional(num: Int) -> Int {
 a = incrementFunctional(a)
 print(a)
 
- ///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 
 /*** Don’t iterate over lists. Use map and reduce. ***/
 
@@ -243,9 +243,45 @@ func formatBands(inout bands: Array<Dictionary<String, String>>) -> () {
 formatBands(&bands)
 print(bands)
 
-// Functional 1
+// Functional 0
 
-typealias Band = Dictionary<String, String>
+typealias BandProperty = String
+typealias Band = Dictionary<String, BandProperty>
+typealias BandTransform = Band -> Band
+typealias BandPropertyTransform = BandProperty -> BandProperty
+
+func call(fn: BandProperty -> BandProperty, onValueForKey key: String) -> Band -> Band {
+    return {
+        band in
+        
+        var newBand = band
+        newBand[key] = fn(band[key]!)
+        return newBand
+        
+    }
+}
+
+let getCanada: BandPropertyTransform = { _ in return "Canada" };
+let capitalize: BandPropertyTransform = { return $0.capitalizedString }
+
+let setCanadaAsCountry = call(getCanada, onValueForKey: "country")
+let capitalizeName = call(capitalize, onValueForKey: "name")
+
+func formattedBands(bands: Array<Band>, fns: Array<BandTransform>) -> Array<Band> {
+    return bands.map {
+        band in
+        
+        var newBand = band
+        fns.map { fn in newBand = fn(newBand) }
+        
+        return newBand
+    }
+}
+
+print(originalBands)
+print(formattedBands(originalBands, [setCanadaAsCountry, capitalizeName]))
+
+// Functional 1
 
 func setCanadaAsCountry(band: Band) -> Band {
     var newBand = band
@@ -337,3 +373,26 @@ func formatBandsFunctional3(bands: Array<Band>) -> Array<Band> {
 
 formatBandsFunctional3(originalBands)
 
+// Functional 4
+
+func updatePropertyForBand(band: Band, key: String, update: BandProperty? -> BandProperty?) -> Band {
+    var newBand = band
+    newBand[key] = update(newBand[key])
+    return newBand
+}
+
+///////////////////////////////////////////////////////
+
+/*** Extra Credit: Generics ***/
+
+// Generic call(_:onValueForKey:)
+
+func call<T, U>(fn: U -> U, onValueForKey key: T) -> Dictionary<T, U> -> Dictionary<T, U> {
+    return {
+        dictionary in
+        
+        var newDictionary = dictionary
+        newDictionary[key] = fn(dictionary[key]!)
+        return newDictionary
+    }
+}
