@@ -5,7 +5,7 @@ import UIKit
 
 /*** What is functional programming? ***/
 
-/* This is an unfunctional function */
+// Unfunctional
 
 var a = 0
 
@@ -16,7 +16,7 @@ func incrementUnfunctional() -> () {
 incrementUnfunctional()
 print(a)
 
-/* This is a functional function */
+// Functional
 
 a = 0
 
@@ -53,7 +53,7 @@ func randomPositiveNumberUpTo(number: Int) -> Int {
     return Int(arc4random_uniform(UInt32(number)))
 }
 
-func randomElement<T>(array: Array<T>) -> T {
+func randomElement(array: Array<String>) -> String {
     let randomIndex = randomPositiveNumberUpTo(array.count)
     return array[randomIndex]
 }
@@ -104,6 +104,7 @@ print(helloCount)
 let helloCountFunctional = greetings.reduce(0, combine: { $0 + ((string($1, contains:"hello")) ? 1 : 0) })
 
 print(helloCountFunctional)
+
 
 ///////////////////////////////////////////////////////
 
@@ -219,12 +220,12 @@ race(state)
 
 // Unfunctional
 
-var originalBands: Array<Dictionary<String, String>> = [
+let bands: Array<Dictionary<String, String>> = [
     ["name" : "sunset rubdown", "country" : "UK"],
     ["name" : "women", "country" : "Germany"],
     ["name" : "a silver mt. zion", "country" : "Spain"]
 ]
-var bands = originalBands // copy so we can use original data in other examples
+var bandsMutable = originalBands
 
 func formatBands(inout bands: Array<Dictionary<String, String>>) -> () {
     var newBands: Array<Dictionary<String, String>> = []
@@ -240,8 +241,8 @@ func formatBands(inout bands: Array<Dictionary<String, String>>) -> () {
     bands = newBands
 }
 
-formatBands(&bands)
-print(bands)
+formatBands(&bandsMutable)
+print(bandsMutable)
 
 // Functional 1
 
@@ -250,12 +251,12 @@ typealias Band = Dictionary<String, BandProperty>
 typealias BandTransform = Band -> Band
 typealias BandPropertyTransform = BandProperty -> BandProperty
 
-func call(fn: BandPropertyTransform, onValueForKey key: String) -> BandTransform {
+func call(#function: BandPropertyTransform, onValueForKey key: String) -> BandTransform {
     return {
         band in
         
         var newBand = band
-        newBand[key] = fn(band[key]!)
+        newBand[key] = function(band[key]!)
         return newBand
     }
 }
@@ -263,31 +264,31 @@ func call(fn: BandPropertyTransform, onValueForKey key: String) -> BandTransform
 let canada: BandPropertyTransform = { _ in return "Canada" };
 let capitalize: BandPropertyTransform = { return $0.capitalizedString }
 
-let setCanadaAsCountry = call(canada, onValueForKey: "country")
-let capitalizeName = call(capitalize, onValueForKey: "name")
+let setCanadaAsCountry = call(function: canada, onValueForKey: "country")
+let capitalizeName = call(function: capitalize, onValueForKey: "name")
 
-func formattedBands(bands: Array<Band>, fns: Array<BandTransform>) -> Array<Band> {
+func formattedBands(bands: Array<Band>, functions: Array<BandTransform>) -> Array<Band> {
     return bands.map {
         band in
         
-        fns.reduce(band) {
-            (currentBand, fn) in
+        functions.reduce(band) {
+            (currentBand, function) in
             
-            fn(currentBand)
+            function(currentBand)
         }
     }
 }
 
 // OR shorthand:
 
-func formattedBandsShorthand(bands: Array<Band>, fns: Array<BandTransform>) -> Array<Band> {
+func formattedBandsShorthand(bands: Array<Band>, functions: Array<BandTransform>) -> Array<Band> {
     return bands.map {
-        fns.reduce($0) { $1($0) }
+        functions.reduce($0) { $1($0) }
     }
 }
 
-print(originalBands)
-print(formattedBands(originalBands, [setCanadaAsCountry, capitalizeName]))
+print(bands)
+print(formattedBands(bands, [setCanadaAsCountry, capitalizeName]))
 
 // Functional 2
 
@@ -302,7 +303,7 @@ func composeBandTransforms(transform1: BandTransform, transform2: BandTransform)
 let myBandTransform = composeBandTransforms(setCanadaAsCountry, capitalizeName)
 let formattedBands = bands.map { band in myBandTransform(band) }
 
-print(originalBands)
+print(bands)
 print(formattedBands)
 
 // Functional 3
@@ -319,30 +320,25 @@ func pluck(key: String) -> BandTransform {
 
 let pluckName = pluck("name")
 
-print(formattedBands(originalBands, [pluckName]))
+print(formattedBands(bands, [pluckName]))
 
 
 ///////////////////////////////////////////////////////
 
 /*** Extra Credit: Generics ***/
 
-// Generic version of call(_:onValueForKey:)
+// Generic version of randomElement(_:)
 
-func call<T, U>(fn: U -> U, onValueForKey key: T) -> Dictionary<T, U> -> Dictionary<T, U> {
-    return {
-        dictionary in
-        
-        var newDictionary = dictionary
-        newDictionary[key] = fn(dictionary[key]!)
-        return newDictionary
-    }
+func randomElement<T>(array: Array<T>) -> T {
+    let randomIndex = randomPositiveNumberUpTo(array.count)
+    return array[randomIndex]
 }
 
 // Generic version of formattedBands(_:fns:)
 
-func updatedItems<T>(items: Array<T>, fns: Array<T -> T>) -> Array<T> {
+func updatedItems<T>(items: Array<T>, functions: Array<T -> T>) -> Array<T> {
     return items.map {
-        fns.reduce($0) { $1($0) }
+        functions.reduce($0) { $1($0) }
     }
 }
 
