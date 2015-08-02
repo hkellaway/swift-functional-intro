@@ -53,7 +53,7 @@ func randomPositiveNumberUpTo(number: Int) -> Int {
     return Int(arc4random_uniform(UInt32(number)))
 }
 
-func randomElement(array: Array<String>) -> String {
+func randomElement(array: [String]) -> String {
     let randomIndex = randomPositiveNumberUpTo(array.count)
     return array[randomIndex]
 }
@@ -174,11 +174,11 @@ while(time > 0) {
 
 // Functional
 
-typealias Time = Dictionary<String, Int>
-typealias Positions = Dictionary<String, Array<Int>>
+typealias Time = [String : Int]
+typealias Positions = [String : [Int]]
 typealias State = (time: Time, positions: Positions)
 
-func moveCarsFunctional(positions: Array<Int>) -> Array<Int> {
+func moveCarsFunctional(positions: [Int]) -> [Int] {
     return positions.map { position in (randomPositiveNumberUpTo(10) > 3) ? position + 1 : position }
 }
 
@@ -196,7 +196,7 @@ func runStepOfRaceFunctional(state: State) -> State {
 }
 
 func drawFunctional(state: State) -> () {
-    let outputs: Array<String> = state.positions["positions"]!.map { position in outputCar(position) }
+    let outputs = state.positions["positions"]!.map { position in outputCar(position) }
     
     print(join("\n", outputs))
 }
@@ -220,18 +220,18 @@ race(state)
 
 // Unfunctional
 
-let bands: Array<Dictionary<String, String>> = [
+let bands: [ [String : String] ] = [
     ["name" : "sunset rubdown", "country" : "UK"],
     ["name" : "women", "country" : "Germany"],
     ["name" : "a silver mt. zion", "country" : "Spain"]
 ]
 var bandsMutable = originalBands
 
-func formatBands(inout bands: Array<Dictionary<String, String>>) -> () {
-    var newBands: Array<Dictionary<String, String>> = []
+func formatBands(inout bands: [ [String : String] ]) -> () {
+    var newBands: [ [String : String] ] = []
     
     for band in bands {
-        var newBand: Dictionary<String, String> = band
+        var newBand: [String : String] = band
         newBand["country"] = "Canada"
         newBand["name"] = newBand["name"]!.capitalizedString
         
@@ -247,7 +247,7 @@ print(bandsMutable)
 // Functional 1
 
 typealias BandProperty = String
-typealias Band = Dictionary<String, BandProperty>
+typealias Band = [String : BandProperty]
 typealias BandTransform = Band -> Band
 typealias BandPropertyTransform = BandProperty -> BandProperty
 
@@ -267,7 +267,7 @@ let capitalize: BandPropertyTransform = { return $0.capitalizedString }
 let setCanadaAsCountry = call(function: canada, onValueForKey: "country")
 let capitalizeName = call(function: capitalize, onValueForKey: "name")
 
-func formattedBands(bands: Array<Band>, functions: Array<BandTransform>) -> Array<Band> {
+func formattedBands(bands: [Band], functions: [BandTransform]) -> [Band] {
     return bands.map {
         band in
         
@@ -281,7 +281,7 @@ func formattedBands(bands: Array<Band>, functions: Array<BandTransform>) -> Arra
 
 // OR shorthand:
 
-func formattedBandsShorthand(bands: Array<Band>, functions: Array<BandTransform>) -> Array<Band> {
+func formattedBandsShorthand(bands: [Band], functions: [BandTransform]) -> [Band] {
     return bands.map {
         functions.reduce($0) { $1($0) }
     }
@@ -329,14 +329,14 @@ print(formattedBands(bands, [pluckName]))
 
 // Generic version of randomElement(_:)
 
-func randomElement<T>(array: Array<T>) -> T {
+func randomElement<T>(array: [T]) -> T {
     let randomIndex = randomPositiveNumberUpTo(array.count)
     return array[randomIndex]
 }
 
 // Generic version of formattedBands(_:fns:)
 
-func updatedItems<T>(items: Array<T>, functions: Array<T -> T>) -> Array<T> {
+func updatedItems<T>(items: [T], functions: [T -> T]) -> [T] {
     return items.map {
         functions.reduce($0) { $1($0) }
     }
