@@ -49,8 +49,8 @@ print(squares)
 
 let newLanguages = ["Swift", "Haskell", "Erlang"]
 
-func randomPositiveNumberUpTo(number: Int) -> Int {
-    return Int(arc4random_uniform(UInt32(number)))
+func randomPositiveNumberUpTo(upperBound: Int) -> Int {
+    return Int(arc4random_uniform(UInt32(upperBound)))
 }
 
 func randomElement(array: [String]) -> String {
@@ -79,9 +79,21 @@ let sum = [0, 1, 2, 3, 4].reduce(0, combine: { $0 + $1 })
 
 print(sum)
 
+// Without shorthand arguments
+
+let numbers = [0, 1, 2, 3, 4]
+let startingWith = 0
+let sum2 = numbers.reduce(startingWith) {
+    (runningSum, currentNumber) in
+    
+    runningSum + currentNumber
+}
+
+print(sum2)
+
 /* Reduce - Example 2 */
 
-let greetings = ["Hello, World", "Hello, Swift.", "Later, Objective-C"]
+let greetings = ["Hello, World", "Hello, Swift", "Later, Objective-C"]
 
 func string(str: String, #contains: String) -> Bool {
     return str.lowercaseString.rangeOfString(contains.lowercaseString) != nil
@@ -174,8 +186,8 @@ while(time > 0) {
 
 // Functional
 
-typealias Time = [String : Int]
-typealias Positions = [String : [Int]]
+typealias Time = Int
+typealias Positions = [Int]
 typealias State = (time: Time, positions: Positions)
 
 func moveCarsFunctional(positions: [Int]) -> [Int] {
@@ -189,14 +201,14 @@ func outputCar(carPosition: Int) -> String {
 }
 
 func runStepOfRaceFunctional(state: State) -> State {
-    let newTime = state.time["time"]! - 1
-    let newPositions = moveCarsFunctional(state.positions["positions"]!)
+    let newTime = state.time - 1
+    let newPositions = moveCarsFunctional(state.positions)
     
-    return (["time" : newTime], ["positions" : newPositions])
+    return (newTime, newPositions)
 }
 
 func drawFunctional(state: State) -> () {
-    let outputs = state.positions["positions"]!.map { position in outputCar(position) }
+    let outputs = state.positions.map { position in outputCar(position) }
     
     print(join("\n", outputs))
 }
@@ -204,13 +216,13 @@ func drawFunctional(state: State) -> () {
 func race(state: State) -> () {
     drawFunctional(state)
     
-    if(state.time["time"]! > 1) {
+    if(state.time > 1) {
         print("\n\n")
         race(runStepOfRaceFunctional(state))
     }
 }
 
-let state: State = (["time" : 5], ["positions" : [1, 1, 1]])
+let state: State = (time: 5, positions: [1, 1, 1])
 race(state)
 
 
@@ -225,7 +237,7 @@ let bands: [ [String : String] ] = [
     ["name" : "women", "country" : "Germany"],
     ["name" : "a silver mt. zion", "country" : "Spain"]
 ]
-var bandsMutable = originalBands
+var bandsMutable = bands
 
 func formatBands(inout bands: [ [String : String] ]) -> () {
     var newBands: [ [String : String] ] = []
@@ -261,11 +273,11 @@ func call(#function: BandPropertyTransform, onValueForKey key: String) -> BandTr
     }
 }
 
-let canada: BandPropertyTransform = { _ in return "Canada" };
+let canada: BandPropertyTransform = { _ in return "Canada" }
 let capitalize: BandPropertyTransform = { return $0.capitalizedString }
 
-let setCanadaAsCountry = call(function: canada, onValueForKey: "country")
-let capitalizeName = call(function: capitalize, onValueForKey: "name")
+let setCanadaAsCountry: BandTransform = call(function: canada, onValueForKey: "country")
+let capitalizeName: BandTransform = call(function: capitalize, onValueForKey: "name")
 
 func formattedBands(bands: [Band], functions: [BandTransform]) -> [Band] {
     return bands.map {
